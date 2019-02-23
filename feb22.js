@@ -32,7 +32,7 @@ const sketch = ({ context }) => {
 
   // Setup a camera (degrees, aspect ratio, near value, far value)
   const camera = new THREE.PerspectiveCamera(
-    60,
+    70,
     context.drawingBufferWidth / context.drawingBufferHeight,
     1,
     1000
@@ -55,9 +55,9 @@ const sketch = ({ context }) => {
     loader.load('fonts/helvetiker_bold.typeface.json', font => {
       let textGeo = new THREE.TextGeometry(text, {
         font: font,
-        size: 20,
+        size: 50,
         height: 10,
-        curveSegments: 4
+        curveSegments: 10
       });
 
       textGeo = new THREE.BufferGeometry().fromGeometry(textGeo);
@@ -72,10 +72,10 @@ const sketch = ({ context }) => {
     var material = new THREE.ShaderMaterial({
       uniforms: {
         color1: {
-          value: new THREE.Color("#510076")
+          value: new THREE.Color("#BFFF00")
         },
         color2: {
-          value: new THREE.Color("#00BFFF")
+          value: new THREE.Color("#15382A")
         }
       },
       vertexShader: `
@@ -102,32 +102,35 @@ const sketch = ({ context }) => {
   };
 
   const makeAnimate = (meshes) => {
-    const randomPi = () => {
-      const range = 3;
-      const pi =  (Math.random() * -Math.PI) + Math.PI;
-      return pi * (Math.random() * range);
+    const randomRot = () => {
+      return between(-Math.PI, Math.PI) * 1.5;
+    }
+
+    const between = (min, max) => {
+      return Math.floor(Math.random()*(max-min+1)+min);
     }
     const startAnimate = () => {
       meshes.forEach((mesh, i) => {
 
-        const randomR = { x: randomPi(), y: randomPi(), z: randomPi() };
+        const randomR = { x: randomRot(), y: randomRot(), z: randomRot() };
+        const randomP = { x: between(-300, 300) }
 
         const startPositionTween = new TWEEN.Tween(mesh.position)
-          .to({ x: 0 , y: -100, z: 100}, 0);
+          .to({ x: randomP.x , y: -200, z: 300}, 0);
         const startRotationTween = new TWEEN.Tween(mesh.rotation)
           .to(randomR, 0);
 
         const enterPositionTween = new TWEEN.Tween(mesh.position)
           .delay(1000 * i)
           .to({ x: 0, y: 0, z: 0 }, 1500)
-          .easing(TWEEN.Easing.Quadratic.Out)
+          .easing(TWEEN.Easing.Cubic.Out)
         const enterRotationTween = new TWEEN.Tween(mesh.rotation)
           .delay(1000 * i)
           .to({ x: 0, y: 0, z: 0 }, 1500)
-          .easing(TWEEN.Easing.Quadratic.Out)
+          .easing(TWEEN.Easing.Cubic.Out)
 
         const exitPositionTween = new TWEEN.Tween(mesh.position)
-          .to({ x: 0, y: 100, z: -100}, 1500)
+          .to({ x: -randomP.x, y: 400, z: -300}, 1500)
           .easing(TWEEN.Easing.Quadratic.In)
         const exitRotationTween = new TWEEN.Tween(mesh.rotation)
           .to({x: -randomR.x, y: -randomR.y, z: -randomR.z}, 1500)
@@ -146,29 +149,60 @@ const sketch = ({ context }) => {
     startAnimate();
     setInterval(startAnimate, 6000);
   }
+
+  const background = new THREE.Group();
+  const gridX = 16;
+  const gridY = 16;
+  const gridYheight = 90;
+
+  const makeBackground = () => {
+    const geometry = new THREE.BoxGeometry( 40, 40, 40 );
+    const material = new THREE.MeshBasicMaterial( { color: '#053B00' } );
+    const meshes = [];
+
+    const rad = 300;
+    const step = (2 * Math.PI) / gridX;
+    let angle = 0;
+
+    for (let j = 0; j < gridY; j++) {
+      for (let i = 0; i < gridX; i++) {
+        let x = rad * Math.sin(angle);
+        let z = rad * Math.cos(angle);
+        let y = (j * gridYheight) + (gridYheight / gridX);
+        var rot = (i*(360/gridX)) * (Math.PI/180.0);
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(x, y, z);
+        mesh.rotation.y = rot;
+        background.add(mesh);
+
+        angle += step;
+      }
+    }
+    // center grid vertically
+    background.position.y = -(gridYheight * gridY) / 2;
+
+    scene.add(background);
+  }
+
   // main
   makeSky();
-
-  var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-  var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-  var cube = new THREE.Mesh( geometry, material );
-  scene.add( cube );
+  makeBackground();
 
   Promise
     .all([textMesh('3'), textMesh('2'), textMesh('1')])
     .then(meshes => {
       meshes.forEach((mesh, i) => {
-        mesh.geometry.translate(-10, 0, 0);
+        mesh.geometry.translate(-25, -25, 0);
         scene.add(mesh);
       });
 
       makeAnimate(meshes);
     });
 
-
   scene.add(new THREE.AmbientLight('#cfcfcf'))
   const light = new THREE.DirectionalLight('#fff', 1);
-  light.position.set(-10, 0, 40)
+  light.position.set(-10, -10, 40)
   scene.add(light)
 
   // draw each frame
@@ -183,6 +217,12 @@ const sketch = ({ context }) => {
     render ({ time }) {
       controls.update();
       TWEEN.update();
+      background.rotation.y += 0.003  ;
+      background.position.y += 1;
+
+      // ugly: reset grid
+      if (background.position.y > -(gridYheight * 3)) background.position.y = -(gridYheight * gridY) / 2;
+
       renderer.render(scene, camera);
     },
     // Dispose of events & renderer for cleaner hot-reloading
