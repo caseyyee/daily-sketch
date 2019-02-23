@@ -68,7 +68,7 @@ const sketch = ({ context }) => {
   });
 
   const makeSky = () => {
-    var geometry = new THREE.CylinderBufferGeometry(300, 300, (context.drawingBufferWidth / context.drawingBufferHeight) * 800, 32, 1, true);
+    var geometry = new THREE.CylinderBufferGeometry(300, 300, 1300, 32, 1, true);
     var material = new THREE.ShaderMaterial({
       uniforms: {
         color1: {
