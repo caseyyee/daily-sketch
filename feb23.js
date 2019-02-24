@@ -251,8 +251,6 @@ const sketch = ({ context }) => {
     if (i > (numShips / 2)) {
       ship.position.z = (numShips - i) * -shipLead;
     }
-    console.log(ship.position.z);
-
     ship.position.y = between(-18, 18);
     ships.push(ship)
     scene.add(ship);
@@ -277,7 +275,8 @@ const sketch = ({ context }) => {
     render ({ time }) {
       controls.update();
       // TWEEN.update();
-      ships.forEach((ship, i) => {
+      ships.forEach((ship, index) => {
+        const i = index + 1;
         ship.position.x += Math.sin(time * 2 * i) / 25;
         ship.position.z += Math.sin(time * i) / 14;
         ship.rotation.z += Math.sin(time * 2 * i) / 1500;
