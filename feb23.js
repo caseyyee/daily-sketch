@@ -48,7 +48,7 @@ const sketch = ({ context }) => {
   controls.minPolarAngle = Math.PI / 4;
   controls.maxPolarAngle = Math.PI / 2;
 
-  camera.position.set(-80, 20, 80);
+  camera.position.set(-80, 20, -70);
 
   const palette = random.pick(palettes);
 
