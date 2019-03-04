@@ -6,13 +6,13 @@
   "dependencies": {
     "@tweenjs/tween.js": "^17.3.0",
     "bezier-easing": "^2.1.0",
-    "canvas-sketch": "0.0.27",
-    "canvas-sketch-util": "^1.4.2",
+    "canvas-sketch": "^0.2.0",
+    "canvas-sketch-util": "^1.6.2",
     "convex-hull": "^1.0.3",
     "glsl-hsl2rgb": "^1.1.0",
     "glsl-noise": "0.0.0",
     "nice-color-palettes": "^2.0.0",
-    "three": "^0.97.0"
+    "three": "^0.102.1"
   },
   "devDependencies": {},
   "scripts": {
