@@ -104,9 +104,9 @@ const sketch = ({ context }) => {
     const inner = 40;
     const outer = 50;
     const geometry = new THREE.RingGeometry( inner, outer, thetaSegments, phiSegments, 0, Math.PI/2 );
-
+    const texture = new THREE.TextureLoader().load('images/uv.png');
     const material = new THREE.MeshBasicMaterial({
-      map: THREE.ImageUtils.loadTexture("images/uv.png"),
+      map: texture,
       transparent: true,
       side: THREE.DoubleSide,
     });

@@ -39,7 +39,6 @@ const sketch = ({ context }) => {
   const light = new THREE.DirectionalLight("#fff", 1.6);
   light.position.set(-1, 0, -4);
   light.castShadow = true;
-  light.shadowDarkness = 0.5;
 
   scene.add(light);
 
@@ -64,7 +63,7 @@ const sketch = ({ context }) => {
 
     var material = new THREE.MeshPhongMaterial({
       color: random.pick(palette),
-      shading: THREE.FlatShading
+      flatShading:true
     });
 
     for (var i = 0; i < Math.random() * 20; i++) {
