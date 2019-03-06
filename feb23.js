@@ -245,17 +245,22 @@ const sketch = ({ context }) => {
   scene.add(light);
 
   const renderer = new THREE.WebGLRenderer(context);
-  renderer.vr.enabled = false;
-  window.renderer = renderer;
   document.body.appendChild(WEBVR.createButton(renderer));
 
-  let vrEnabled = false;
-  let wasPresenting = false;
-  let enteringVr, exitingVr;
+  let isPresentingVr = false;
+  let wasPresentingVr = false;
+
+  window.addEventListener('vrdisplaypresentchange', (e) => {
+    // disable vr after exit present due to conflicting with orbit controls.
+    if (!e.display.isPresenting) {
+      renderer.vr.enabled = false;
+    }
+  })
 
   // draw each frame
   return {
     resize ({ pixelRatio, viewportWidth, viewportHeight }) {
+      console.log('resizing');
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(viewportWidth, viewportHeight);
       camera.aspect = viewportWidth / viewportHeight;
@@ -263,20 +268,20 @@ const sketch = ({ context }) => {
     },
 
     render ({ time }) {
-      vrEnabled = renderer.vr.getDevice() && renderer.vr.isPresenting();
-      enteringVr = vrEnabled && !wasPresenting;
-      exitingVr = !vrEnabled && wasPresenting;
-      if (enteringVr) {
+      isPresentingVr = renderer.vr.getDevice() && renderer.vr.isPresenting();
+      if (isPresentingVr && !wasPresentingVr) { // entering vr
+        // enable VR only after we enter, otherwise it conflicts with OrbitControls
         renderer.vr.enabled = true;
-        wasPresenting = true;
+        wasPresentingVr = true;
       }
 
-      if (exitingVr) {
-        renderer.vr.enabled = false;
-        wasPresenting = false;
+      if (!isPresentingVr && wasPresentingVr) { // exiting vr
+        // explicitly call exitPresent on device so we get proper canvas resizing.
+        renderer.vr.getDevice().exitPresent();
+        wasPresentingVr = false;
       }
 
-      if (!vrEnabled) {
+      if (!isPresentingVr) {
         controls.update();
       }
 
