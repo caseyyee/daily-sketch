@@ -11,11 +11,7 @@ require('three/examples/js/controls/OrbitControls');
 
 
 const settings = {
-  // Make the loop animated
-  animate: true,
-  // Get a WebGL canvas rather than 2D
   context: 'webgl',
-  // Turn on MSAA
   attributes: { antialias: true }
 };
 
@@ -32,12 +28,16 @@ const sketch = ({ context }) => {
   controls.maxDistance = 200;
   controls.minPolarAngle = Math.PI / 4;
   controls.maxPolarAngle = Math.PI / 2;
-  camera.position.set(-80, 20, -70);
+
+  const setDefaultCameraPosition = () => {
+    camera.position.set(-80, 20, -70);
+  }
+
+  setDefaultCameraPosition();
 
   const palette = random.pick(palettes);
 
   const makeSky = () => {
-    // var geometry = new THREE.CylinderBufferGeometry(300, 300, 1300, 32, 1, true);
     var geometry = new THREE.SphereBufferGeometry( 900, 32, 32 );
     var material = new THREE.ShaderMaterial({
       uniforms: {
@@ -239,12 +239,58 @@ const sketch = ({ context }) => {
 
   makeStars();
 
+  const render = (time) => {
+    isPresentingVr = renderer.vr.getDevice() && renderer.vr.isPresenting();
+    if (isPresentingVr && !wasPresentingVr) { // entering vr
+      // enable VR only after we enter, otherwise it conflicts with OrbitControls
+      renderer.vr.enabled = true;
+      wasPresentingVr = true;
+    }
+
+    if (!isPresentingVr && wasPresentingVr) { // exiting vr
+      // explicitly call exitPresent on device so we get proper canvas resizing.
+      renderer.vr.getDevice().exitPresent();
+      wasPresentingVr = false;
+    }
+
+    if (!isPresentingVr) {
+      controls.update();
+    }
+
+    ships.forEach((ship, index) => {
+      const i = index + 1;
+      ship.position.x += Math.sin(time * 2 * i) / 25;
+      ship.position.z += Math.sin(time * i) / 14;
+      ship.rotation.z += Math.sin(time * 2 * i) / 1500;
+    });
+
+    stars.forEach((star, i) => {
+      star.position.z += 30;
+      if (star.position.z > 600) {
+        //console.log(i);
+        stars.splice(i, 1);
+        scene.remove(star);
+        makeStars(1);
+      }
+    });
+
+    jetBlast.forEach((blast) => {
+      blast.position.x = Math.random();
+      blast.position.y = Math.random();
+    });
+
+    renderer.render(scene, camera);
+  }
+
   scene.add(new THREE.AmbientLight('#cfcfcf'));
   const light = new THREE.DirectionalLight('#fff', 1);
   light.position.set(-100, 100, 40);
   scene.add(light);
 
   const renderer = new THREE.WebGLRenderer(context);
+  // we use three.js renderer to drive render loop.
+  renderer.setAnimationLoop(render);
+
   document.body.appendChild(WEBVR.createButton(renderer));
 
   let isPresentingVr = false;
@@ -254,8 +300,9 @@ const sketch = ({ context }) => {
     // disable vr after exit present due to conflicting with orbit controls.
     if (!e.display.isPresenting) {
       renderer.vr.enabled = false;
+      setDefaultCameraPosition();
     }
-  })
+  });
 
   // draw each frame
   return {
@@ -267,48 +314,6 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
 
-    render ({ time }) {
-      isPresentingVr = renderer.vr.getDevice() && renderer.vr.isPresenting();
-      if (isPresentingVr && !wasPresentingVr) { // entering vr
-        // enable VR only after we enter, otherwise it conflicts with OrbitControls
-        renderer.vr.enabled = true;
-        wasPresentingVr = true;
-      }
-
-      if (!isPresentingVr && wasPresentingVr) { // exiting vr
-        // explicitly call exitPresent on device so we get proper canvas resizing.
-        renderer.vr.getDevice().exitPresent();
-        wasPresentingVr = false;
-      }
-
-      if (!isPresentingVr) {
-        controls.update();
-      }
-
-      ships.forEach((ship, index) => {
-        const i = index + 1;
-        ship.position.x += Math.sin(time * 2 * i) / 25;
-        ship.position.z += Math.sin(time * i) / 14;
-        ship.rotation.z += Math.sin(time * 2 * i) / 1500;
-      });
-
-      stars.forEach((star, i) => {
-        star.position.z += 30;
-        if (star.position.z > 600) {
-          //console.log(i);
-          stars.splice(i, 1);
-          scene.remove(star);
-          makeStars(1);
-        }
-      });
-
-      jetBlast.forEach((blast) => {
-        blast.position.x = Math.random();
-        blast.position.y = Math.random();
-      });
-
-      renderer.render(scene, camera);
-    },
     // Dispose of events & renderer for cleaner hot-reloading
     unload () {
       renderer.dispose();
