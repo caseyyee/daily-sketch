@@ -4,10 +4,11 @@ const palettes = require('nice-color-palettes')
 
 global.TWEEN = require('@tweenjs/tween.js');
 global.THREE = require('three');
+global.WEBVR = require('./js/WebVR.js');
 
-// Include any additional ThreeJS examples below
 require('three/examples/js/utils/GeometryUtils.js');
 require('three/examples/js/controls/OrbitControls');
+
 
 const settings = {
   // Make the loop animated
@@ -19,24 +20,8 @@ const settings = {
 };
 
 const sketch = ({ context }) => {
-  // Setup your scene
   const scene = new THREE.Scene();
-
-  // Create a renderer
-  const renderer = new THREE.WebGLRenderer({
-    context
-  });
-
-  // WebGL background color
-  renderer.setClearColor('#273042', 1);
-
-  // Setup a camera (degrees, aspect ratio, near value, far value)
-  const camera = new THREE.PerspectiveCamera(
-    70,
-    context.drawingBufferWidth / context.drawingBufferHeight,
-    1,
-    5000
-  );
+  const camera = new THREE.PerspectiveCamera(70, 1, 1, 5000);
 
   // Setup controls
   const controls = new THREE.OrbitControls(camera, context.canvas);
@@ -47,7 +32,6 @@ const sketch = ({ context }) => {
   controls.maxDistance = 200;
   controls.minPolarAngle = Math.PI / 4;
   controls.maxPolarAngle = Math.PI / 2;
-
   camera.position.set(-80, 20, -70);
 
   const palette = random.pick(palettes);
@@ -206,8 +190,6 @@ const sketch = ({ context }) => {
     makeBody();
     makeCanopy();
 
-    //shipGroup.position.y += 30;
-    //shipGroup.rotation.x = Math.PI /2;
     return shipGroup;
   }
 
@@ -234,7 +216,6 @@ const sketch = ({ context }) => {
       stars.push(star);
       scene.add(star);
     }
-    //scene.add(cube);
   }
 
   // main
@@ -258,23 +239,47 @@ const sketch = ({ context }) => {
 
   makeStars();
 
-  scene.add(new THREE.AmbientLight('#cfcfcf'))
+  scene.add(new THREE.AmbientLight('#cfcfcf'));
   const light = new THREE.DirectionalLight('#fff', 1);
-  light.position.set(-100, 100, 40)
-  scene.add(light)
+  light.position.set(-100, 100, 40);
+  scene.add(light);
+
+  const renderer = new THREE.WebGLRenderer(context);
+  renderer.vr.enabled = false;
+  window.renderer = renderer;
+  document.body.appendChild(WEBVR.createButton(renderer));
+
+  let vrEnabled = false;
+  let wasPresenting = false;
+  let enteringVr, exitingVr;
 
   // draw each frame
   return {
-    // Handle resize events here
     resize ({ pixelRatio, viewportWidth, viewportHeight }) {
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(viewportWidth, viewportHeight);
+      camera.aspect = viewportWidth / viewportHeight;
       camera.updateProjectionMatrix();
     },
-    // Update & render your scene here
+
     render ({ time }) {
-      controls.update();
-      // TWEEN.update();
+      vrEnabled = renderer.vr.getDevice() && renderer.vr.isPresenting();
+      enteringVr = vrEnabled && !wasPresenting;
+      exitingVr = !vrEnabled && wasPresenting;
+      if (enteringVr) {
+        renderer.vr.enabled = true;
+        wasPresenting = true;
+      }
+
+      if (exitingVr) {
+        renderer.vr.enabled = false;
+        wasPresenting = false;
+      }
+
+      if (!vrEnabled) {
+        controls.update();
+      }
+
       ships.forEach((ship, index) => {
         const i = index + 1;
         ship.position.x += Math.sin(time * 2 * i) / 25;
@@ -295,7 +300,7 @@ const sketch = ({ context }) => {
       jetBlast.forEach((blast) => {
         blast.position.x = Math.random();
         blast.position.y = Math.random();
-      })
+      });
 
       renderer.render(scene, camera);
     },
