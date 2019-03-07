@@ -14,14 +14,14 @@ const settings = {
 const sketch = ({ context }) => {
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(70, 1, 1, 5000);
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 2000);
 
   const controls = new THREE.OrbitControls(camera, context.canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.25;
   controls.screenSpacePanning = false;
-  controls.minDistance = 70;
-  controls.maxDistance = 200;
+  controls.minDistance = 10;
+  controls.maxDistance = 20;
   controls.minPolarAngle = Math.PI / 4;
   controls.maxPolarAngle = Math.PI / 2;
 
@@ -42,11 +42,11 @@ const sketch = ({ context }) => {
                 0,     0,   0,   1);
 
   // stars
-  const starLength = 60;
+  const starLength = 40;
   const starSpeed = 30;
   const stars = [];
-  const starBounds = new THREE.Vector3(300, 300, 300);
-  const startOffset = new THREE.Vector3(0, 0, 300);
+  const starBounds = new THREE.Vector3(200, 200, 1000);
+  const startOffset = new THREE.Vector3(0, 0, 1000);
   const starGeo = new THREE.Geometry();
   starGeo.vertices.push(new THREE.Vector3(0, 0, starLength));
   starGeo.vertices.push(new THREE.Vector3(0, 0, -starLength));
@@ -58,9 +58,9 @@ const sketch = ({ context }) => {
   const ships = [];
   const shipBlast = [];
   const numShips = 5;
-  const shipXspacing = 30;
-  const shipZspacing = 15;
-  const shipYspacing = 18;
+  const shipXspacing = 3;
+  const shipZspacing = 1.5;
+  const shipYspacing = 1.8;
   const fleetWidth = numShips * shipXspacing;
 
   // ship body
@@ -126,7 +126,7 @@ const sketch = ({ context }) => {
   blastCount = 10;
 
   const setCameraPosition = () => {
-    camera.position.set(-80, 20, -70);
+    camera.position.set(-8, 2, -7);
   }
 
   const makeSky = () => {
@@ -158,7 +158,7 @@ const sketch = ({ context }) => {
       wireframe: false
     });
     scene.add(new THREE.Mesh(
-      new THREE.SphereBufferGeometry(900, 32, 32),
+      new THREE.SphereBufferGeometry(1000, 32, 32),
       gradientMat));
   };
 
@@ -185,6 +185,7 @@ const sketch = ({ context }) => {
     // ship body and canopy
     shipGroup.add(shipMesh.clone());
     shipGroup.add(canopyMesh.clone());
+    shipGroup.scale.set(0.1, 0.1, 0.1);
     return shipGroup;
   }
 
@@ -221,9 +222,10 @@ const sketch = ({ context }) => {
     // jiggle ships
     ships.forEach((ship, index) => {
       const i = index + 1;
-      ship.position.x += Math.sin(time * 2 * i) / 25;
-      ship.position.z += Math.sin(time * i) / 14;
-      ship.rotation.z += Math.sin(time * 2 * i) / 1500;
+      ship.position.x += Math.sin(time * i / 1000) / 250;
+      ship.position.y += Math.sin(time * i / 1000) / 200;
+      ship.position.z += Math.sin(time * i / 1000) / 200;
+      ship.rotation.z += Math.sin(time * i / 1000) / 1500;
     });
 
     // move stars
