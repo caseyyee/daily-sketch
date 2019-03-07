@@ -1,18 +1,19 @@
-# (Almost) Daily Sketches
+# Sketches :pencil2:
 
-[February 23](https://caseyyee.github.io/daily-sketch/public/feb23.html)
+Sometimes, you just want to make stuff. Just for fun! I always learn something new along the way.
 
-![February 23](https://raw.githubusercontent.com/caseyyee/daily-sketch/master/public/feb23.png)
+<a href="https://caseyyee.github.io/sketches/public/feb23.html">
+  <img src="https://raw.githubusercontent.com/caseyyee/sketches/master/public/feb23.png" width="350" height="200" style="object-fit: cover">
+</a>
 
-[February 22](https://caseyyee.github.io/daily-sketch/public/feb22.html)
+<a href="https://caseyyee.github.io/sketches/public/feb22.html">
+  <img src="https://raw.githubusercontent.com/caseyyee/sketches/master/public/feb22.png" width="350" height="200" style="object-fit: cover">
+</a>
 
-![February 22](https://raw.githubusercontent.com/caseyyee/daily-sketch/master/public/feb22.png)
+<a href="https://caseyyee.github.io/sketches/public/feb21.html">
+  <img src="https://raw.githubusercontent.com/caseyyee/sketches/master/public/feb21.png" width="350" height="200" style="object-fit: cover">
+</a>
 
-[February 21](https://caseyyee.github.io/daily-sketch/public/feb21.html)
-
-![February 21](https://raw.githubusercontent.com/caseyyee/daily-sketch/master/public/feb21.png)
-
-[February 20](https://caseyyee.github.io/daily-sketch/public/feb20.html)
-
-![February 20](https://raw.githubusercontent.com/caseyyee/daily-sketch/master/public/feb20.png)
-
+<a href="https://caseyyee.github.io/sketches/public/feb20.html">
+  <img src="https://raw.githubusercontent.com/caseyyee/sketches/master/public/feb20.png" width="350" height="200" style="object-fit: cover">
+</a>
