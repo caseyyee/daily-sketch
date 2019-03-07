@@ -24,7 +24,6 @@ const sketch = ({ context }) => {
   controls.maxDistance = 20;
   controls.minPolarAngle = Math.PI / 4;
   controls.maxPolarAngle = Math.PI / 2;
-
   scene.add(new THREE.AmbientLight('#cfcfcf'));
   const light = new THREE.DirectionalLight('#fff', 1);
   light.position.set(-100, 100, 40);
@@ -40,19 +39,6 @@ const sketch = ({ context }) => {
               Sxy,     1,  Szy,  0,
               Sxz,   Syz,   1,   0,
                 0,     0,   0,   1);
-
-  // stars
-  const starLength = 40;
-  const starSpeed = 30;
-  const stars = [];
-  const starBounds = new THREE.Vector3(200, 200, 1000);
-  const startOffset = new THREE.Vector3(0, 0, 1000);
-  const starGeo = new THREE.Geometry();
-  starGeo.vertices.push(new THREE.Vector3(0, 0, starLength));
-  starGeo.vertices.push(new THREE.Vector3(0, 0, -starLength));
-  const starMat = new THREE.LineBasicMaterial({
-    color: '#ffffff',
-    linewidth: 1 });
 
   // ships
   const ships = [];
@@ -99,7 +85,7 @@ const sketch = ({ context }) => {
   canopyMesh.rotation.x += Math.PI / 2;
 
   // ship boosters
-  const boosterGeo = new THREE.CylinderGeometry(2, 2, 10, 8);
+  const boosterGeo = new THREE.CylinderBufferGeometry(2, 2, 10, 8);
   const boosterMat = new THREE.MeshPhongMaterial({
     flatShading: true,
     color: '#690078' });
@@ -129,11 +115,15 @@ const sketch = ({ context }) => {
     camera.position.set(-8, 2, -7);
   }
 
+  const weightedRandom = (min, max) => {
+    return max / (Math.random() * max + min);
+  }
+
   const makeSky = () => {
     const gradientMat = new THREE.ShaderMaterial({
       uniforms: {
         color1: {
-          value: new THREE.Color('#181F4B')
+          value: new THREE.Color('#293B84')
         },
         color2: {
           value: new THREE.Color('#000000')
@@ -189,15 +179,47 @@ const sketch = ({ context }) => {
     return shipGroup;
   }
 
-  const makeStars = (range, start, amount) => {
+  // stars
+  const stars = [];
+  const starLength = 40;
+  const starSpeed = 30;
+  const starBounds = new THREE.Vector3(400, 400, 2000);
+  const starGeo = new THREE.Geometry();
+  starGeo.vertices.push(new THREE.Vector3(0, 0, starLength));
+  starGeo.vertices.push(new THREE.Vector3(0, 0, -starLength));
+  const starMat = new THREE.LineBasicMaterial({
+    color: '#39A7DD',
+    linewidth: 1 });
+
+  const makeStars = (range, amount) => {
     for (let i = 0; i < amount; i++) {
       const star = new THREE.Line(starGeo, starMat);
       star.position.set(
         random.range(-range.x, range.x),
         random.range(-range.y, range.y),
-        random.range(-range.z-start.z, range.z+start.z));
+        random.range(-range.z, range.z));
       stars.push(star);
       scene.add(star);
+    }
+  }
+
+  // rocks
+  const rocks = [];
+  const rockGeo = new THREE.BoxBufferGeometry(3, 3, 3);
+  const rockMat = new THREE.MeshPhongMaterial({ color: '#162541' });
+
+  const makeRocks = (range, amount) => {
+    for (let i = 0; i < amount; i++) {
+      const rockMesh = new THREE.Mesh(rockGeo, rockMat);
+      rockMesh.position.set(
+        random.range(-range.x, range.x),
+        random.range(-range.y, range.y),
+        random.range(-range.z, range.z));
+      rockMesh.scale.set(weightedRandom(1, 50), weightedRandom(1, 50), weightedRandom(1, 50));
+      rockMesh.userData.rotation = new THREE.Vector3(random.range(0, 0.01), random.range(0, 0.01), random.range(0, 0.01));
+      rockMesh.userData.velocity = random.range(0.5, 1);
+      rocks.push(rockMesh);
+      scene.add(rockMesh);
     }
   }
 
@@ -232,9 +254,17 @@ const sketch = ({ context }) => {
     stars.forEach((star, i) => {
       star.position.z += starSpeed;
       if (star.position.z > starBounds.z) {
-        stars.splice(i, 1);
-        scene.remove(star);
-        makeStars(starBounds, startOffset, 1);
+        star.position.z = -starBounds.z;
+      }
+    });
+
+    rocks.forEach((rock, i) => {
+      rock.position.z += rock.userData.velocity * 25;
+      rock.rotation.set(rock.rotation.x + rock.userData.rotation.x,
+        rock.rotation.x + rock.userData.rotation.y,
+        rock.rotation.x + rock.userData.rotation.z);
+      if (rock.position.z > starBounds.z) {
+        rock.position.z = -starBounds.z;
       }
     });
 
@@ -245,16 +275,21 @@ const sketch = ({ context }) => {
     });
 
     renderer.render(scene, camera);
+
+    lastTime = time;
   }
 
   // main
   const renderer = new THREE.WebGLRenderer(context);
+  window.renderer = renderer;
   renderer.setAnimationLoop(render); // Use three.js renderer to drive render loop.
   document.body.appendChild(WEBVR.createButton(renderer));
 
   setCameraPosition();
 
-  makeStars(starBounds, new THREE.Vector3(0, 0, 0), 100);
+  makeStars(starBounds, 300);
+
+  makeRocks(starBounds, 200);
 
   makeSky();
 
