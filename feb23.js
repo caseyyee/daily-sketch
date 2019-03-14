@@ -203,26 +203,6 @@ const sketch = ({ context }) => {
     }
   }
 
-  // rocks
-  const rocks = [];
-  const rockGeo = new THREE.BoxBufferGeometry(3, 3, 3);
-  const rockMat = new THREE.MeshPhongMaterial({ color: '#162541' });
-
-  const makeRocks = (range, amount) => {
-    for (let i = 0; i < amount; i++) {
-      const rockMesh = new THREE.Mesh(rockGeo, rockMat);
-      rockMesh.position.set(
-        random.range(-range.x, range.x),
-        random.range(-range.y, range.y),
-        random.range(-range.z, range.z));
-      rockMesh.scale.set(weightedRandom(1, 50), weightedRandom(1, 50), weightedRandom(1, 50));
-      rockMesh.userData.rotation = new THREE.Vector3(random.range(0, 0.01), random.range(0, 0.01), random.range(0, 0.01));
-      rockMesh.userData.velocity = random.range(0.5, 1);
-      rocks.push(rockMesh);
-      scene.add(rockMesh);
-    }
-  }
-
   const render = (time) => {
     isPresentingVr = renderer.vr.getDevice() && renderer.vr.isPresenting();
     if (isPresentingVr && !wasPresentingVr) { // entering vr
@@ -258,16 +238,6 @@ const sketch = ({ context }) => {
       }
     });
 
-    rocks.forEach((rock, i) => {
-      rock.position.z += rock.userData.velocity * 25;
-      rock.rotation.set(rock.rotation.x + rock.userData.rotation.x,
-        rock.rotation.x + rock.userData.rotation.y,
-        rock.rotation.x + rock.userData.rotation.z);
-      if (rock.position.z > starBounds.z) {
-        rock.position.z = -starBounds.z;
-      }
-    });
-
     // jiggle ship blast
     shipBlast.forEach((blast) => {
       blast.position.x = Math.random();
@@ -288,8 +258,6 @@ const sketch = ({ context }) => {
   setCameraPosition();
 
   makeStars(starBounds, 300);
-
-  makeRocks(starBounds, 200);
 
   makeSky();
 
